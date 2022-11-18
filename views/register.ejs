@@ -1,0 +1,33 @@
+<%- include("partials/header") -%>
+<div class="container-fluid w-50 p-5 reg-ct">
+  <h1>Register</h1>
+  <div class="reg-form p-3 mt-3">
+    <form action="/register" method="post">
+      <div class="mb-3">
+        <label for="exampleInputEmail1" class="form-label">Email</label>
+        <input
+          type="email"
+          class="form-control"
+          id="exampleInputEmail1"
+          aria-describedby="emailHelp"
+          name="e"
+        />
+      </div>
+      <div class="mb-3">
+        <label for="exampleInputPassword1" class="form-label">Password</label>
+        <input
+          type="password"
+          class="form-control mb-3"
+          id="exampleInputPassword1"
+          name="p"
+        />
+        Already have an account?
+        <a href="/login" style="padding: 0; color: #393e46">
+          <strong>Login</strong>
+        </a>
+      </div>
+      <button type="submit" class="btn d-block">Register</button>
+    </form>
+  </div>
+</div>
+<%- include("partials/footer") -%>

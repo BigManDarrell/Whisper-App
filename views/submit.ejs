@@ -1,0 +1,23 @@
+<%- include("partials/header") -%>
+<div class="container-fluid p-5 w-50">
+  <div class="text-center">
+    <img src="images/key.png" alt="" width="150" />
+    <h1 class="mt-5 mb-2">MySecrets</h1>
+    <p>Don't keep your secrets, share them anonymously!</p>
+  </div>
+  <div class="mt-5 reg-form p-4">
+    <form action="/submit" method="post">
+      <textarea
+        class="form-control"
+        placeholder="What's your secret?"
+        id="floatingTextarea2"
+        style="height: 100px"
+        name="s"
+      ></textarea>
+      <div class="text-left">
+        <button type="submit" class="btn submit-btn mt-3">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+<%- include("partials/footer") -%>
