@@ -1,5 +1,5 @@
 require("dotenv").config();
-const encrypt = require("mongoose-encryption");
+const md5 = require("md5");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const express = require("express");
@@ -14,11 +14,6 @@ mongoose.connect("mongodb://localhost:27017/whisperDB", {
 
 const userSchema = new mongoose.Schema({ email: String, password: String });
 const secretSchema = new mongoose.Schema({ secret: String });
-
-userSchema.plugin(encrypt, {
-  secret: process.env.SECRET_KEY,
-  encryptedFields: ["password"],
-});
 
 const User = mongoose.model("User", userSchema);
 const Secret = mongoose.model("Secret", secretSchema);
@@ -36,7 +31,7 @@ app
     res.render("register");
   })
   .post((req, res) => {
-    const user = new User({ email: req.body.e, password: req.body.p });
+    const user = new User({ email: req.body.e, password: md5(req.body.p) });
     user.save((err) => {
       if (!err) {
         isGreen = true;
@@ -58,7 +53,7 @@ app
         isRed = true;
         res.redirect("/login");
       } else {
-        if (found.password == req.body.p) {
+        if (found.password == md5(req.body.p)) {
           Secret.find((err, secrets) => {
             if (!err) {
               res.render("secrets", { secrets: secrets });
