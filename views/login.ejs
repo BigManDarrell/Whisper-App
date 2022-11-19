@@ -1,19 +1,9 @@
 <%- include("partials/header") -%>
 <div class="container-fluid w-50 p-5 reg-ct">
-  <% if (isGreen) { %>
-  <div class="alert alert-success alert-dismissible fade show" role="alert">
-    <strong>Successfuly registered!</strong> You can now go ahead and login to
-    your existing accouont.
-    <button
-      type="button"
-      class="btn-close"
-      data-bs-dismiss="alert"
-      aria-label="Close"
-    ></button>
-  </div>
-  <% } %> <% if (isRed) { %>
+  <% if (isRed) { %>
   <div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <strong>Error!</strong> Wrong email or password.
+    <strong>Ooops!</strong> Couldn't find email or password, make sure you enter
+    the right one.
     <button
       type="button"
       class="btn-close"

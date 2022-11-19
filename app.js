@@ -36,10 +36,9 @@ passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-let isGreen = false;
 let isRed = false;
 
-app.get("/", (req, res) => {
+app.route("/").get((req, res) => {
   res.render("home");
 });
 
@@ -68,23 +67,50 @@ app
 app
   .route("/login")
   .get((req, res) => {
-    res.render("login", { isGreen: isGreen, isRed: isRed });
-    isGreen = false;
+    res.render("login", { isRed: isRed });
     isRed = false;
   })
   .post((req, res) => {
-    const user = new User({
-      username: req.body.username,
-      password: req.body.password,
-    });
-    req.login(user, (err) => {
-      if (!err) {
-        passport.authenticate("local")(req, res, () => {
-          res.redirect("/secrets");
-        });
+    User.findOne({ username: req.body.username }, (err, found) => {
+      if (!found) {
+        isRed = true;
+        res.redirect("/login");
+      } else {
+        passport.authenticate("local", (err, user) => {
+          if (user) {
+            req.login(user, (err) => {
+              if (!err) {
+                res.redirect("/secrets");
+              }
+            });
+          } else {
+            isRed = true;
+            res.redirect("/login");
+          }
+        })(req, res);
       }
     });
   });
+
+app.route("/logout").post((req, res) => {
+  req.logout((err) => {
+    if (!err) {
+      res.redirect("/");
+    }
+  });
+});
+
+app.route("/secrets").get((req, res) => {
+  if (req.isAuthenticated()) {
+    Secret.find((err, secrets) => {
+      if (!err) {
+        res.render("secrets", { secrets: secrets });
+      }
+    });
+  } else {
+    res.redirect("/login");
+  }
+});
 
 app
   .route("/submit")
@@ -103,25 +129,5 @@ app
       }
     });
   });
-
-app.get("/secrets", (req, res) => {
-  if (req.isAuthenticated()) {
-    Secret.find((err, secrets) => {
-      if (!err) {
-        res.render("secrets", { secrets: secrets });
-      }
-    });
-  } else {
-    res.redirect("/login");
-  }
-});
-
-app.post("/logout", (req, res) => {
-  req.logout((err) => {
-    if (!err) {
-      res.redirect("/");
-    }
-  });
-});
 
 app.listen(3000, () => console.log(`App listening on port 3000`));
