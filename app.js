@@ -6,6 +6,7 @@ const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 const findOrCreate = require("mongoose-findorcreate");
 
 const app = express();
@@ -26,7 +27,10 @@ mongoose.connect("mongodb://localhost:27017/whisperDB", {
   useNewUrlParser: true,
 });
 
-const userSchema = new mongoose.Schema({ googleId: String });
+const userSchema = new mongoose.Schema({
+  googleId: String,
+  facebookId: String,
+});
 const secretSchema = new mongoose.Schema({ secret: String });
 
 userSchema.plugin(passportLocalMongoose);
@@ -66,6 +70,23 @@ passport.use(
   )
 );
 
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FB_ID,
+      clientSecret: process.env.FB_SECRET,
+      callbackURL: "http://localhost:3000/auth/facebook/secrets",
+      profileFields: ["id", "displayName", "photos", "email"],
+    },
+    (accessToken, refreshToken, profile, cb) => {
+      User.findOrCreate(
+        { facebookId: profile.id, username: profile.emails[0].value },
+        (err, user) => cb(err, user)
+      );
+    }
+  )
+);
+
 let isRed = false;
 
 app.route("/").get((req, res) => {
@@ -78,8 +99,21 @@ app.get(
 );
 
 app.get(
+  "/auth/facebook",
+  passport.authenticate("facebook", { scope: ["public_profile"] })
+);
+
+app.get(
   "/auth/google/secrets",
   passport.authenticate("google", { failureRedirect: "/register" }),
+  (req, res) => {
+    res.redirect("/secrets");
+  }
+);
+
+app.get(
+  "/auth/facebook/secrets",
+  passport.authenticate("facebook", { failureRedirect: "/register" }),
   (req, res) => {
     res.redirect("/secrets");
   }
