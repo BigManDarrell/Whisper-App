@@ -30,14 +30,13 @@ mongoose.connect("mongodb://localhost:27017/whisperDB", {
 const userSchema = new mongoose.Schema({
   googleId: String,
   facebookId: String,
+  secret: String,
 });
-const secretSchema = new mongoose.Schema({ secret: String });
 
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
 
 const User = mongoose.model("User", userSchema);
-const Secret = mongoose.model("Secret", secretSchema);
 
 passport.use(User.createStrategy());
 passport.serializeUser((user, cb) => {
@@ -178,31 +177,28 @@ app.route("/logout").post((req, res) => {
 });
 
 app.route("/secrets").get((req, res) => {
-  if (req.isAuthenticated()) {
-    Secret.find((err, secrets) => {
-      if (!err) {
-        res.render("secrets", { secrets: secrets });
-      }
-    });
-  } else {
-    res.redirect("/login");
-  }
+  User.find({"secret": {$ne: null}}, (err, users) => {
+    if (users) {
+      res.render("secrets", { users: users });
+    }
+  });
 });
 
 app
   .route("/submit")
   .get((req, res) => {
-    res.render("submit");
+    if (req.isAuthenticated()) {
+      res.render("submit");
+    } else {
+      res.redirect("/login");
+    }
   })
   .post((req, res) => {
-    const secret = new Secret({ secret: req.body.s });
-    secret.save((err) => {
-      if (!err) {
-        Secret.find((err, secrets) => {
-          if (!err) {
-            res.render("secrets", { secrets: secrets });
-          }
-        });
+    User.findOne({ username: req.user.username }, (err, found) => {
+      if (found) {
+        found.secret = req.body.s;
+        found.save();
+        res.redirect("/secrets");
       }
     });
   });
